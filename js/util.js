@@ -64,7 +64,7 @@ function blowUpNegs(rowIdx, colIdx) {
   for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
       if (i < 0 || i > gBoard.length - 1) continue
       for (var j = colIdx - 1; j <= colIdx + 1; j++) {
-          if (j < 0 || i > gBoard[0].length - 1) continue
+          if (j < 0 || j > gBoard[0].length - 1) continue
           if (i === rowIdx && j === colIdx) continue
           var cell = gBoard[i][j]
           // console.log('cell:', cell)

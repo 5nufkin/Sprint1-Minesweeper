@@ -9,9 +9,29 @@ body{
   font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
+.dashboard{
+  width: 300px;
+  height: 100px;
+  background-color: #555;
+  margin: 20px auto 5px;
+}
+
+.smiley-btn{
+  height: 30px;
+  background-color: transparent;
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.smiley-btn:hover{
+  transform: scale(1.1); /* Slightly scale up the button */
+}
+
 .board-container{
   background-color: #ddd;
-  margin: 20px auto;
+  margin: 0 auto 20px;
   border: 2px solid black;
   width: 300px;
   height: 400px;

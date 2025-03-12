@@ -8,21 +8,27 @@ function getRandCell() {
     randPos.i = getRandomInt(0, gLevel.SIZE),
       randPos.j = getRandomInt(0, gLevel.SIZE)
     if (!gBoard[randPos.i][randPos.j].isMine && !gBoard[randPos.i][randPos.j].firstClicked) return randPos
-    console.log('did it again')
   }
 }
 
 function getCellLocation(elCell) {
   const cell = {}
   var location = (elCell.classList[1].split('-'))
-  console.log(+location[1])
-  console.log(+location[2])
   cell.i = +location[1]
   cell.j = +location[2]
   return cell
 }
 
-function countMineNegs(rowIdx, colIdx) { 
+function getCurrCell(elCell) {
+  const cellLocation = {}
+  var location = (elCell.classList[1].split('-'))
+  cellLocation.i = +location[1]
+  cellLocation.j = +location[2]
+  const currCell = gBoard[cellLocation.i][cellLocation.j]
+  return currCell
+}
+
+function countMineNegs(rowIdx, colIdx, isRevealNegs) { 
   var mineNegsCount = 0
   for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
     if (i < 0 || i > gBoard.length - 1) continue
@@ -30,13 +36,20 @@ function countMineNegs(rowIdx, colIdx) {
       if (j < 0 || j > gBoard[i].length - 1) continue
       if (i === rowIdx && j === colIdx) continue
       const currCell = gBoard[i][j]
-      if (currCell.isMine) {
-        mineNegsCount++
+      if (currCell.isMine && !isRevealNegs) mineNegsCount++ 
+      else if (isRevealNegs && !currCell.isMine) {
+        debugger
+          //Model
+          currCell.isCovered = false
+          gGame.revealedCount++
+          //DOM
+          const elCell = document.querySelector(`.cell-${i}-${j} span`)
+          elCell.classList.remove('covered')
+        } 
       }
     }
+    return mineNegsCount
   }
-  return mineNegsCount
-}
 
 
 

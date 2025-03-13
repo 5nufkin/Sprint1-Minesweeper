@@ -81,7 +81,7 @@ function hintShowNegs(rowIdx, colIdx) {
       if (j < 0 || j > gBoard[i].length - 1) continue
 
       const currCell = gBoard[i][j]
-      if (currCell.isCovered) {
+      if (currCell.isCovered&&!currCell.isMarked) {
         const elCellReveal = getElementByPos(i, j)
         revealCell(elCellReveal)
       }

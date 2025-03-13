@@ -10,23 +10,65 @@ body{
 }
 
 .dashboard{
+  position: relative;
   width: 300px;
   height: 100px;
   background-color: #555;
   margin: 20px auto 5px;
 }
 
-.smiley-btn{
-  height: 30px;
+.btn{
   background-color: transparent;
   border: none;
+}
+
+.time{
+  position: absolute;
+  font-size: 20px;
+  left: 10px;
+  top: 5px;
+}
+
+.helpers{
+  display: block;
+}
+
+.hints,
+.lives-counter{
+  display: inline-block;
+  margin-right: 20px;
+}
+
+.smiley:hover{
+  transform: scale(1.1); 
+}
+
+.smiley{
+  display: inline-block;
+  margin: auto;
+  height: 30px;
   font-size: 30px;
   cursor: pointer;
   margin-bottom: 10px;
 }
 
-.smiley-btn:hover{
-  transform: scale(1.1); /* Slightly scale up the button */
+.hint{
+  font-size: 20px;
+  filter: grayscale(90%);
+  cursor: pointer;
+}
+
+.hint.active{
+  filter: grayscale(0%);
+  transform: scale(1.3);
+}
+
+.hint.used{
+  visibility: hidden;
+}
+
+.hint:hover{
+  transform: scale(1.3);
 }
 
 .board-container{

@@ -9,8 +9,18 @@
 <body onload="onInit()">
   <div class="header"><h1>Super Minesweeper Game</h1></div>
   <div class="dashboard">
-    <button class="smiley-btn" onclick="onInit()"></button>
-    <h3 class="lives-counter">Lives: <span></span></h3>
+    <button class="btn smiley" onclick="onInit()">😃</button>
+    <div class="time">Time: <span>0</span></div>
+    <div class="helpers">
+      <h3 class="lives-counter">Lives: <span></span></h3>
+      <div class="hints"></div>
+    </div>
+  </div>
+  <div class="level">
+    <h2>level:</h2>
+    <button class="choose-level" onclick="onChangeLevel(4,2)">No idea what I'm doing</button>
+    <button class="choose-level" onclick="onChangeLevel(8,14)">I'm know my way around</button>
+    <button class="choose-level" onclick="onChangeLevel(12,32)">Literally a pro</button>
   </div>
 
   <table class="board-container">

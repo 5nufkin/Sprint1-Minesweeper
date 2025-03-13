@@ -1,6 +1,5 @@
 'use strict'
 
-
 function getRandCell() {
   var isValid = false
   const randPos = {}
@@ -28,7 +27,7 @@ function getCurrCell(elCell) {
   return currCell
 }
 
-function countMineNegs(rowIdx, colIdx, isRevealNegs) { 
+function countMineNegs(rowIdx, colIdx) {
   var mineNegsCount = 0
   for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
     if (i < 0 || i > gBoard.length - 1) continue
@@ -36,20 +35,102 @@ function countMineNegs(rowIdx, colIdx, isRevealNegs) {
       if (j < 0 || j > gBoard[i].length - 1) continue
       if (i === rowIdx && j === colIdx) continue
       const currCell = gBoard[i][j]
-      if (currCell.isMine && !isRevealNegs) mineNegsCount++ 
-      else if (isRevealNegs && !currCell.isMine) {
-        debugger
-          //Model
-          currCell.isCovered = false
-          gGame.revealedCount++
-          //DOM
-          const elCell = document.querySelector(`.cell-${i}-${j} span`)
-          elCell.classList.remove('covered')
-        } 
+      if (currCell.isMine) {
+        mineNegsCount++
       }
     }
-    return mineNegsCount
   }
+  return mineNegsCount
+}
+
+function getObjectByElement(elCell) {
+  const cell = getCurrCell(elCell)
+  return cell
+}
+
+function getElementByPos(rowIdx, colIdx) {
+  const elCell = document.querySelector(`.cell-${rowIdx}-${colIdx}`)
+  return elCell
+}
+
+function expandReveal(board, elCell, rowIdx, colIdx) {
+  for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
+    if (i < 0 || i > board.length - 1) continue
+
+    for (var j = colIdx - 1; j <= colIdx + 1; j++) {
+
+      if (j < 0 || j > board[i].length - 1) continue
+      if (i === rowIdx && j === colIdx) continue
+
+      const currCell = board[i][j]
+      if (!currCell.isMine && currCell.isCovered) {
+        const elCellReveal = getElementByPos(i, j)
+        if (currCell.isMarked) continue
+        revealCell(elCellReveal)
+      }
+    }
+  }
+}
+
+function hintShowNegs(rowIdx, colIdx) {
+  for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
+    if (i < 0 || i > gBoard.length - 1) continue
+
+    for (var j = colIdx - 1; j <= colIdx + 1; j++) {
+
+      if (j < 0 || j > gBoard[i].length - 1) continue
+
+      const currCell = gBoard[i][j]
+      if (currCell.isCovered) {
+        const elCellReveal = getElementByPos(i, j)
+        revealCell(elCellReveal)
+      }
+    }
+  }
+}
+
+
+
+
+
+// function countMineNegs(rowIdx, colIdx, isRevealNegs) {
+//   var mineNegsCount = 0
+//   for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
+//     if (i < 0 || i > gBoard.length - 1) continue
+
+//     for (var j = colIdx - 1; j <= colIdx + 1; j++) {
+//       if (j < 0 || j > gBoard[i].length - 1) continue
+//       if (i === rowIdx && j === colIdx) continue
+
+//       const currCell = gBoard[i][j]
+
+//       // debugger
+//       if (currCell.isMine && !isRevealNegs) mineNegsCount++
+
+//       else if (isRevealNegs && !currCell.isMine) {
+//         //Model
+//         // console.log(currCell, currCell.isCovered)
+//         currCell.isCovered = false
+//         // console.log('\n1: i:', i, 'j:', j, 'gGame.revealedCount: ', gGame.revealedCount)
+//         // console.log(gGame)
+//         gGame.revealedCount++
+//         // console.log('2: i:', i, 'j:', j, 'gGame.revealedCount: ', gGame.revealedCount)
+//         //DOM
+//         const elCell = document.querySelector(`.cell-${i}-${j}`)
+//         console.log('\n', elCell)
+//         if (currCell.isMarked) {
+//           removeMark(elCell)
+//           gGame.markedCount--
+//           gGame.revealedCount--
+//         }
+//         console.log(elCell)
+//         // console.log(elCell)
+//         elCell.querySelector('span').classList.remove('covered')
+//       }
+//     }
+//   }
+//   if (!isRevealNegs) return mineNegsCount
+// }
 
 
 
@@ -73,30 +154,30 @@ function makeId(length = 6) {
   var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
   for (var i = 0; i < length; i++) {
-      txt += possible.charAt(Math.floor(Math.random() * possible.length))
+    txt += possible.charAt(Math.floor(Math.random() * possible.length))
   }
 
   return txt
 }
 
 function getRandomColor() {
-const letters = '0123456789ABCDEF'
-var color = '#'
+  const letters = '0123456789ABCDEF'
+  var color = '#'
 
-for (var i = 0; i < 6; i++) {
-  color += letters[Math.floor(Math.random() * 16)]
-}
-return color
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)]
+  }
+  return color
 }
 
 function createMat(ROWS, COLS) {
   const mat = []
   for (var i = 0; i < ROWS; i++) {
-      const row = []
-      for (var j = 0; j < COLS; j++) {
-          row.push('')
-      }
-      mat.push(row)
+    const row = []
+    for (var j = 0; j < COLS; j++) {
+      row.push('')
+    }
+    mat.push(row)
   }
   return mat
 }
@@ -104,10 +185,10 @@ function createMat(ROWS, COLS) {
 function copyMat(mat) {
   var newMat = []
   for (var i = 0; i < mat.length; i++) {
-      newMat[i] = []
-      for (var j = 0; j < mat[0].length; j++) {
-          newMat[i][j] = mat[i][j]
-      }
+    newMat[i] = []
+    for (var j = 0; j < mat[0].length; j++) {
+      newMat[i][j] = mat[i][j]
+    }
   }
   return newMat
 }
@@ -117,24 +198,24 @@ function blowUpNegs(rowIdx, colIdx) {
   // console.log('rowIdx,colIdx:', rowIdx, colIdx)
 
   for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
-      if (i < 0 || i > gBoard.length - 1) continue
-      for (var j = colIdx - 1; j <= colIdx + 1; j++) {
-          if (j < 0 || j > gBoard[0].length - 1) continue
-          if (i === rowIdx && j === colIdx) continue
-          var cell = gBoard[i][j]
-          // console.log('cell:', cell)
-          if (cell === LIFE) {
-              // console.log('i,j:', i, j)
+    if (i < 0 || i > gBoard.length - 1) continue
+    for (var j = colIdx - 1; j <= colIdx + 1; j++) {
+      if (j < 0 || j > gBoard[0].length - 1) continue
+      if (i === rowIdx && j === colIdx) continue
+      var cell = gBoard[i][j]
+      // console.log('cell:', cell)
+      if (cell === LIFE) {
+        // console.log('i,j:', i, j)
 
-              // UPDATE THE MODEL
-              gBoard[i][j] = ''
+        // UPDATE THE MODEL
+        gBoard[i][j] = ''
 
-              // UPDATE THE DOM
-              var elCell = document.querySelector(`[data-i="${i}"][data-j="${j}"]`)
-              // console.log('elCell:', elCell)
-              elCell.innerText = ''
-              elCell.classList.remove('occupied')
-          }
+        // UPDATE THE DOM
+        var elCell = document.querySelector(`[data-i="${i}"][data-j="${j}"]`)
+        // console.log('elCell:', elCell)
+        elCell.innerText = ''
+        elCell.classList.remove('occupied')
       }
+    }
   }
 }

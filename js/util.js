@@ -6,7 +6,7 @@ function getRandCell() {
   while (!isValid) {
     randPos.i = getRandomInt(0, gLevel.SIZE),
       randPos.j = getRandomInt(0, gLevel.SIZE)
-    if (!gBoard[randPos.i][randPos.j].isMine && !gBoard[randPos.i][randPos.j].firstClicked) return randPos
+    if (!gBoard[randPos.i][randPos.j].isMine && !gBoard[randPos.i][randPos.j].firstClicked && gBoard[randPos.i][randPos.j].isCovered) return randPos
   }
 }
 
@@ -89,7 +89,41 @@ function hintShowNegs(rowIdx, colIdx) {
   }
 }
 
+function getLevelName() {
+  if (gLevel.SIZE === 4) return 'easy'
+  if (gLevel.SIZE === 8) return 'medium'
+  if (gLevel.SIZE === 12) return 'hard'
+  return null
+}
 
+function getBestTime(level) {
+  switch (level) {
+    case 'easy':
+      return localStorage.getItem('bestTimeEasy')
+    case 'medium':
+      return localStorage.getItem('bestTimeMedium')
+    case 'hard':
+      return localStorage.getItem('bestTimeHard')
+    default:
+      return null
+  }
+}
+
+function setBestTime(level, newBestTime) {
+  switch (level) {
+    case 'easy':
+      localStorage.setItem('bestTimeEasy', newBestTime)
+      break
+    case 'medium':
+      localStorage.setItem('bestTimeMedium', newBestTime)
+      break
+    case 'hard':
+      localStorage.setItem('bestTimeHard', newBestTime)
+      break
+    default:
+      return null
+  }
+}
 
 
 

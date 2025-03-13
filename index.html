@@ -1,27 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
   <title>SuperMineSweeper</title>
 </head>
+
 <body onload="onInit()">
-  <div class="header"><h1>Super Minesweeper Game</h1></div>
-  <div class="dashboard">
-    <button class="btn smiley" onclick="onInit()">😃</button>
-    <div class="time">Time: <span>0</span></div>
-    <div class="helpers">
-      <h3 class="lives-counter">Lives: <span></span></h3>
+  <div class="header">
+    <h1><span>Super</span> Minesweeper</h1>
+  </div>
+
+  <div class="container">
+    <div class="level">
+      <h3>Choose Level:</h3>
+      <div><button class="choose-level" onclick="onChangeLevel(4,2)">No idea what I'm doing</button></div>
+      <div><button class="choose-level" onclick="onChangeLevel(8,14)">I know my way around</button></div>
+      <div><button class="choose-level" onclick="onChangeLevel(12,32)">Literally a pro</button></div>
+    </div>
+
+    <div class="dashboard">
+      <button class="btn smiley" onclick="onInit()">😃</button>
+      <div class="time">Time: <span>0</span></div>
+      <div class="lives-counter">Lives: <span></span></div>
+      <div class="best-time">Record Time: <span></span> secs</div>
       <div class="hints"></div>
     </div>
+
+    <div class="extras">
+      <div><button class="safe-click extra-btn" onclick="onSafeClick()">Safe Click</button></div>
+      <div><button class="light-mode-btn extra-btn" onclick="onLightMode(this)">Light Mode</button></div>
+    </div>
   </div>
-  <div class="level">
-    <h2>level:</h2>
-    <button class="choose-level" onclick="onChangeLevel(4,2)">No idea what I'm doing</button>
-    <button class="choose-level" onclick="onChangeLevel(8,14)">I'm know my way around</button>
-    <button class="choose-level" onclick="onChangeLevel(12,32)">Literally a pro</button>
-  </div>
+
 
   <table class="board-container">
     <tbody class="board">
@@ -30,8 +43,9 @@
   </table>
 
 
-<footer>By Nir Sultan</footer>
+  <footer>By Nir Sultan</footer>
   <script src="js/main.js"></script>
   <script src="js/util.js"></script>
 </body>
+
 </html>

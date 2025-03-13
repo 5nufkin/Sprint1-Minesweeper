@@ -2,6 +2,8 @@
 
 var gBoard
 var gInterval
+var gTimeout
+var gIsDark = true
 var gFirstClick = false
 const MINE = '💣'
 const MARK = '🚩'
@@ -15,7 +17,8 @@ const gGame = {
   revealedCount: 0,
   markedCount: 0,
   secsPassed: 0,
-  livesLeft: 3
+  livesLeft: 3,
+  safeClicksLeft: 3
 }
 
 function onInit() {
@@ -23,8 +26,9 @@ function onInit() {
   buildBoard()
   changeSmileyButton('😃')
   createHints()
-  updateDashboard()
+  updateLivesLeft()
   renderBoard()
+  renderBestTime()
 }
 
 function resetGame() {
@@ -35,8 +39,11 @@ function resetGame() {
   gGame.secsPassed = 0
   gGame.livesLeft = 3
   gGame.secsPassed = 0
+  gGame.safeClicksLeft = 3
   gFirstClick = false
   renderTime()
+  const elSafeButton = document.querySelector('.safe-click')
+  elSafeButton.classList.remove('off')
 }
 
 function onFirstClick(rowIdx, colIdx) {
@@ -112,14 +119,14 @@ function renderBoard() { //DOM
   elContainer.innerHTML = strHTML
 }
 
-function updateDashboard() {
+function updateLivesLeft() {
   const livesCount = document.querySelector('.lives-counter span')
   livesCount.innerHTML = gGame.livesLeft
 }
 
 function onCellClicked(elCell, rowIdx, colIdx) {
 
-  const cell = getCurrCell(elCell) //cell={minesAroundCount: 0, isCovered: true, isMine: false, isMarked: false} OBJECT
+  const cell = getCurrCell(elCell)
   if (!gGame.isOn && !gFirstClick) elCell = onFirstClick(rowIdx, colIdx)
   if (!cell.isCovered || !gGame.isOn || cell.isMarked) return
   if (gGame.isHintMode) {
@@ -138,8 +145,6 @@ function onCellClicked(elCell, rowIdx, colIdx) {
 
   if (cell.isMine) handleLivesLeft()
 }
-
-/////////////////CHANGING BEGAN//////////////////////////
 
 function onCellMarked(elCell, event) {
 
@@ -162,7 +167,7 @@ function revealCell(elCell) {
   const currCell = getCurrCell(elCell)
   if ((currCell.isMine && gGame.livesLeft > 0) || gGame.isHintMode) {
     elCell.querySelector('.covered').classList.remove('covered')
-    setTimeout(unRevealCell, 1500, elCell)
+    gTimeout = setTimeout(unRevealCell, 1500, elCell)
   } else {
     //Update Model
     currCell.isCovered = false
@@ -194,6 +199,10 @@ function hideCell(elCell) {
 }
 
 function markCell(elCell) {
+  if (gTimeout) {
+    clearTimeout(gTimeout)
+    unRevealCell(elCell)
+  }
   const cell = getCurrCell(elCell)
   cell.isMarked = true
   gGame.markedCount++
@@ -219,7 +228,7 @@ function removeMark(elCell) {
 function handleLivesLeft() {
   if (gGame.livesLeft > 0) {
     gGame.livesLeft--
-    updateDashboard()
+    updateLivesLeft()
   } else checkGameOver()
 }
 
@@ -299,35 +308,49 @@ function onChangeLevel(size, mineCount) {
 }
 
 function handleBestTime() {
-  var currBest = +getBestTime()
-  if(!currBest)localStorage.setItem('bestTime')
+  const level = getLevelName()
+  const currLevelBest = +getBestTime(level)
+  //Model
+  if (gGame.secsPassed < currLevelBest || !currLevelBest) setBestTime(level, gGame.secsPassed)
 
-
-
-
-  if (localStorage.getItem('bestTime')) {
-    var currBest = localStorage.getItem('bestTime')
-    console.log(currBest)
-    console.log(+currBest)
-
-  } else {
-    localStorage.setItem('bestTime', gGame.secsPassed + '')
-    currBest = localStorage.getItem('bestTime')
-    console.log(currBest)
-    console.log(+currBest)
-  }
+  //DOM
+  renderBestTime()
 }
 
-function getBestTime(level) {
-  const currBest = localStorage.getItem('bestTime')
-
-  switch (level) {
-    case 'easy':
-      
+function renderBestTime() {
+  const level = getLevelName()
+  const currLevelBest = +getBestTime(level)
+  var str = ''
+  if (!currLevelBest) {
+    str = '--'
+  } else {
+    str = `${currLevelBest}`
   }
+  const elBestTime = document.querySelector('.best-time span')
+  elBestTime.innerText = str
+}
 
+function onSafeClick() {
+  if (!gGame.safeClicksLeft) return
+  //Model
+  gGame.safeClicksLeft--
+  const safeCell = getRandCell()
+  const elSafeCell = getElementByPos(safeCell.i, safeCell.j)
 
+  //DOM
+  elSafeCell.classList.add('safe-cell')
+  setTimeout(() => {
+    elSafeCell.classList.remove('safe-cell')
+    if (gGame.safeClicksLeft === 0) {
+      const elSafeButton = document.querySelector('.safe-click')
+      elSafeButton.classList.add('off')
+    }
+  }, 1500);
+}
 
-  if(currBest) return currBest
-  return null
+function onLightMode(elBtn) {
+  gIsDark = !gIsDark
+  const elBody = document.querySelector('body')
+  elBody.classList.toggle('light-mode')
+  elBtn.innerText = gIsDark?'Light Mode': 'Dark Mode'
 }

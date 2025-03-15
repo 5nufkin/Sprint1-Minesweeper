@@ -8,9 +8,9 @@
   --orange: #ff7c0a;
   --light-grey: #989898;
   --medium-grey: #626262;
-  --dark-grey: #1b1a1a;
+  --dark-grey: #2a2929;
   --dark-blue: #0f223f;
-  --darker-blue: #08111f;
+  --darker-blue: #0e1e34;
   --near-white: #f9f9f9;
   --margin-bottom: 20px;
 }
@@ -22,12 +22,13 @@
     --dark-blue: #ffffff;
     --darker-blue: #7e9fd3;
     --near-white: #08111f;
+    background-image: url(../img/hex-background-networking\ \(1\).jpg);
 }
 
 body{
   text-align: center;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
-  background-image: url(../img/hex-background-networking.jpg);
+  background-image: url(../img/hex-background-networking\ \(2\).jpg);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -35,18 +36,6 @@ body{
   background-color: #1b1a1a;
   color: var(--near-white);
   font-size: 18px;
-}
-
-body::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.65); 
-  pointer-events: none; 
-  z-index: -1; 
 }
 
 h1{
@@ -166,7 +155,30 @@ h1{
   transform: scale(1.5);
 }
 
+.light-mode-btn{
+  position: absolute;
+  right: 15px;
+  top: 15px;
+  height: 35px;
+  width: 50px;
+  font-size: 12px;
+  background-color: var(--dark-grey);
+  color: var(--near-white);
+  border: 1px solid var(--orange);
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 12px;
+  transition: .2s;
+}
+
+.light-mode-btn:hover{
+  background-color: var(--near-white);
+  color: var(--dark-grey)
+}
+
 .extra-btn{
+  position: absolute;
   background-color: var(--light-grey);
   border: 1px solid var(--orange);
   color: var(--dark-blue);
@@ -185,24 +197,23 @@ h1{
 }
 
 .safe-click{
-  display: inline-block;
-  position: absolute;
   top: 18px;
   left: 10px;
 }
 
-.light-mode-btn{
-  display: inline-block;
-  position: absolute;
+.exterminator{
   top: 18px;
   right: 10px;
 }
 
 .manually-create-btn{
-  display: inline-block;
-  position: absolute;
   bottom: 18px;
   left: 10px;
+}
+
+.mega-hint{
+  bottom: 18px;
+  right: 10px;
 }
 
 .board{

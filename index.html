@@ -13,6 +13,8 @@
     <h1><span>Super</span> Minesweeper</h1>
   </div>
 
+  <div><button class="light-mode-btn" onclick="onLightMode(this)">Light Mode</button></div>
+
   <div class="container">
     <div class="level">
       <h3>Choose Level:</h3>
@@ -29,10 +31,14 @@
       <div class="hints"></div>
     </div>
 
+    
+
     <div class="extras">
       <div><button class="safe-click extra-btn" onclick="onSafeClick()">Safe Click</button></div>
-      <div><button class="light-mode-btn extra-btn" onclick="onLightMode(this)">Light Mode</button></div>
+      
       <div><button class="manually-create-btn extra-btn" onclick="onManuallyCreate()">Manually Create</button></div>
+      <div><button class="mega-hint extra-btn" onclick="onMegaHint(this)">Mega Hint</button></div>
+      <div><button class="exterminator extra-btn" onclick="onExterminator()">Exterminator</button></div>
     </div>
   </div>
 

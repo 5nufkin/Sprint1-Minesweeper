@@ -9,6 +9,13 @@ var gDisableClicks = false
 var gManualMode = false
 var gIsManual = false
 var gMinesToPos
+var gMegaHint = {
+  isMegaMode: false,
+  clickCount: 0,
+}
+var gIsExtermination = false
+
+
 const gLastMoves = []
 const MINE = '💣'
 const MARK = '🚩'
@@ -49,12 +56,17 @@ function resetGame() {
   gManualMode = false
   gIsManual = false
   gMinesToPos = null
+  gMegaHint = {
+    isMegaMode: false,
+    clickCount: 0,
+  }
   const elManualBtn = document.querySelector('.manually-create-btn')
   elManualBtn.innerText = `Manually Create`
-  elManualBtn.classList.remove('off')
   renderTime()
-  const elSafeButton = document.querySelector('.safe-click')
-  elSafeButton.classList.remove('off')
+  const elOffBtns = document.querySelectorAll('.extras .off')
+  for (var i = 0; i < elOffBtns.length; i++) {
+    elOffBtns[i].classList.remove('off')
+  }
 }
 
 function onFirstClick(rowIdx, colIdx) {
@@ -128,9 +140,11 @@ function renderBoard() { //DOM
       const currCell = gBoard[i][j]
       var cellContent = currCell.isMine ? MINE : currCell.minesAroundCount
       if (cellContent === 0) cellContent = ''
-      const className = `cell cell-${i}-${j}`
+      var className = `cell cell-${i}-${j}`
+      className += currCell.isCovered ? '' : ' revealed'
+      const spanClassName = currCell.isCovered ? 'covered' : ''
 
-      strHTML += `<td onclick="onCellClicked(this,${i},${j})" oncontextmenu="onCellMarked(this, event)" class="${className}"><span class="covered">${cellContent}</span></td>`
+      strHTML += `<td onclick="onCellClicked(this,${i},${j})" oncontextmenu="onCellMarked(this, event)" class="${className}"><span class="${spanClassName}">${cellContent}</span></td>`
     }
     strHTML += '</tr>'
   }
@@ -151,6 +165,16 @@ function onCellClicked(elCell, rowIdx, colIdx) {
   const cell = getCurrCell(elCell)
   if (gDisableClicks) return
   if (!gGame.isOn && !gFirstClick) elCell = onFirstClick(rowIdx, colIdx)
+  if (gMegaHint.isMegaMode) {
+    gMegaHint.clickCount++
+    if (gMegaHint.clickCount === 1) gMegaHint.fromCell = { i: rowIdx, j: colIdx }
+    if (gMegaHint.clickCount === 2) {
+      gMegaHint.toCell = { i: rowIdx, j: colIdx }
+      showMegaHint()
+      gMegaHint.isMegaMode = false
+    }
+    return
+  }
   if (!cell.isCovered || !gGame.isOn || cell.isMarked) return
   if (gGame.isHintMode) {
     useHint(elCell)
@@ -176,7 +200,7 @@ function onCellClicked(elCell, rowIdx, colIdx) {
   // console.log('gLastMoves:', gLastMoves);
   // console.log('gLastMoves[0]:', gLastMoves[0]);
   if ((1 > (gLevel.SIZE ** 2 - gGame.revealedCount) - gLevel.MINES) && gFirstClick) {
-    greyOutElement(document.querySelector('.safe-click'))
+    greyOutElement(document.querySelector('.manually-create-btn'))
   }
 }
 
@@ -216,13 +240,12 @@ function onCellMarked(elCell, event) {
 // }
 
 
-function revealCell(elCell) {
+function revealCell(elCell, timer = 1500) {
   const currCell = getCurrCell(elCell)
-  if ((currCell.isMine && gGame.livesLeft > 0) || gGame.isHintMode) {
-    console.log('Hint');
+  if ((currCell.isMine && gGame.livesLeft > 0) || gGame.isHintMode || gMegaHint.isMegaMode) {
     elCell.classList.add('revealed')
     elCell.querySelector('.covered').classList.remove('covered')
-    gTimeout = setTimeout(unRevealCell, 1500, elCell)
+    gTimeout = setTimeout(unRevealCell, timer, elCell)
   } else {
     //Update Model
     currCell.isCovered = false
@@ -272,7 +295,6 @@ function handleLivesLeft() {
 
 function checkGameOver(cell) {
   if (!gGame.isOn) return ////To handle the multi console logs, DELETE IN THE END ONCE THERE'S MODAL
-
   if ((gGame.revealedCount + gGame.markedCount === gLevel.SIZE ** 2 && gGame.markedCount === gLevel.MINES) ||
     gGame.livesLeft === 0 && cell.isMine && !cell.isMarked) {
     clearInterval(gInterval)
@@ -282,6 +304,11 @@ function checkGameOver(cell) {
       smiley = '😎'
       handleBestTime()
     } else {
+      clearTimeout (gTimeout)
+      const cells = document.querySelectorAll('.covered')
+      for (var i = 0; i < cells.length; i++){
+        cells[i].classList.remove('covered')
+      }
       smiley = '🤯'
     }
 
@@ -399,7 +426,7 @@ function onLightMode(elBtn) {
 
 function onManuallyCreate() {
   //Model
-  if(gGame.isOn) return
+  if (gGame.isOn) return
   buildBoard()
   gManualMode = true
   gMinesToPos = gLevel.MINES
@@ -412,7 +439,6 @@ function onManuallyCreate() {
 
 function handleManualMode(elCell, rowIdx, colIdx) {
   //Model
-  //Disable SETMINES later
   gBoard[rowIdx][colIdx].isMine = true
   gMinesToPos--
 
@@ -430,3 +456,35 @@ function handleManualMode(elCell, rowIdx, colIdx) {
     renderBoard()
   }
 }
+
+function onMegaHint(elMegaBtn) {
+  //Model
+  if (gMegaHint.disableClicks) return
+  gMegaHint.isMegaMode = true
+  gMegaHint.disableClicks = true
+
+  //DOM
+  greyOutElement(elMegaBtn)
+}
+
+function onExterminator() {
+  //Model
+  //Adjust winning condition!!!
+  if (!gGame.isOn || gLevel.MINES <= 3) return
+  gIsExtermination = true
+  gLevel.MINES -= 3
+  // debugger
+  for (var i = 0; i < 3; i++) {
+    const mine = getRandMine()
+    console.log('mine:', mine);
+    gBoard[mine.i][mine.j].isMine = false
+  }
+  setMinesNegsCount()
+
+
+  //DOM
+  renderBoard()
+  greyOutElement(document.querySelector('.exterminator'))
+}
+
+//ADD TITLES FOR SPECIAL BTNS

@@ -1,7 +1,6 @@
 'use strict'
 
 function getRandCell() {
-  // debugger
   if ((1 > (gLevel.SIZE ** 2 - gGame.revealedCount) - gLevel.MINES) && gFirstClick) return null
   var isValid = false
   const randPos = {}
@@ -9,6 +8,25 @@ function getRandCell() {
     randPos.i = getRandomInt(0, gLevel.SIZE),
       randPos.j = getRandomInt(0, gLevel.SIZE)
     if (!gBoard[randPos.i][randPos.j].isMine && !gBoard[randPos.i][randPos.j].firstClicked && gBoard[randPos.i][randPos.j].isCovered) return randPos
+  }
+}
+
+function getRandMine() {
+  const randMine = {}
+  var isMine = false
+  while (!isMine) {
+    randMine.i = getRandomInt(0, gLevel.SIZE),
+      randMine.j = getRandomInt(0, gLevel.SIZE)
+    if(gBoard[randMine.i][randMine.j].isMine) return randMine
+  }
+}
+
+function showMegaHint() {
+  for (var i = gMegaHint.fromCell.i; i <= gMegaHint.toCell.i; i++) {
+    for (var j = gMegaHint.fromCell.j; j <= gMegaHint.toCell.j; j++) {
+      const elCell = getElementByPos(i, j)
+      revealCell(elCell, 2000)
+    }
   }
 }
 

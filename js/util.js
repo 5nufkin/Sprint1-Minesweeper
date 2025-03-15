@@ -1,6 +1,8 @@
 'use strict'
 
 function getRandCell() {
+  // debugger
+  if ((1 > (gLevel.SIZE ** 2 - gGame.revealedCount) - gLevel.MINES) && gFirstClick) return null
   var isValid = false
   const randPos = {}
   while (!isValid) {
@@ -8,6 +10,30 @@ function getRandCell() {
       randPos.j = getRandomInt(0, gLevel.SIZE)
     if (!gBoard[randPos.i][randPos.j].isMine && !gBoard[randPos.i][randPos.j].firstClicked && gBoard[randPos.i][randPos.j].isCovered) return randPos
   }
+}
+
+function greyOutElement(element) {
+  element.classList.add('off')
+}
+
+function saveMove(cell, rowIdx, colIdx) {
+  gLastMoves.unshift(createMoveObject(cell, rowIdx, colIdx))
+}
+
+function createMoveObject(cell, rowIdx, colIdx) {
+  const move = {
+    mIsOn: gGame.isOn,
+    mLives: gGame.livesLeft,
+    mRevealed: gGame.revealedCount,
+    mMarked: gGame.markedCount,
+    mCell: cell,
+    mCellRowIdx: rowIdx,
+    mCellColIdx: colIdx,
+    mIsCoveredCell: cell.isCovered,
+    mIsMarked: cell.isMarked,
+    mMinesAround: gBoard[rowIdx][colIdx].minesAroundCount
+  }
+  return move
 }
 
 function getCellLocation(elCell) {
@@ -53,6 +79,30 @@ function getElementByPos(rowIdx, colIdx) {
   return elCell
 }
 
+// function expandReveal(board, elCell, rowIdx, colIdx) {
+//   for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
+//     if (i < 0 || i > board.length - 1) continue
+
+//     for (var j = colIdx - 1; j <= colIdx + 1; j++) {
+
+//       if (j < 0 || j > board[i].length - 1) continue
+//       if (i === rowIdx && j === colIdx) continue
+
+//       const currCell = board[i][j]
+//       if (!currCell.isMine && !currCell.isCovered) {
+//         const elCellReveal = getElementByPos(i, j)
+//         if (currCell.isCovered) continue
+//         revealCell(elCellReveal)
+//         if (currCell.minesAroundCount === 0 && !currCell.isMine) {
+//           expandReveal(gBoard, elCell, i, j)
+//           console.log('FIRST ONE')
+
+//         }
+//       }
+//     }
+//   }
+// }
+
 function expandReveal(board, elCell, rowIdx, colIdx) {
   for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
     if (i < 0 || i > board.length - 1) continue
@@ -67,23 +117,47 @@ function expandReveal(board, elCell, rowIdx, colIdx) {
         const elCellReveal = getElementByPos(i, j)
         if (currCell.isMarked) continue
         revealCell(elCellReveal)
+        if (currCell.minesAroundCount === 0 && !currCell.isMine) {
+          expandReveal(gBoard, elCell, i, j)
+        }
       }
     }
   }
 }
+
+// function collapseReveal(board, elCell, rowIdx, colIdx) {
+//   for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
+//     if (i < 0 || i > board.length - 1) continue
+
+//     for (var j = colIdx - 1; j <= colIdx + 1; j++) {
+
+//       if (j < 0 || j > board[i].length - 1) continue
+//       if (i === rowIdx && j === colIdx) continue
+
+//       const currCell = board[i][j]
+//       if (!currCell.isMine && !currCell.isCovered) {
+//         const elCellReveal = getElementByPos(i, j)
+//         if (currCell.isMarked) continue
+//         unRevealCell(elCellReveal)
+//         if (currCell.minesAroundCount === 0 && !currCell.isMine) {
+//           collapseReveal(gBoard, elCell, i, j)
+//         }
+//       }
+//     }
+//   }
+// }
 
 function hintShowNegs(rowIdx, colIdx) {
   for (var i = rowIdx - 1; i <= rowIdx + 1; i++) {
     if (i < 0 || i > gBoard.length - 1) continue
 
     for (var j = colIdx - 1; j <= colIdx + 1; j++) {
-
       if (j < 0 || j > gBoard[i].length - 1) continue
 
       const currCell = gBoard[i][j]
-      if (currCell.isCovered&&!currCell.isMarked) {
-        const elCellReveal = getElementByPos(i, j)
-        revealCell(elCellReveal)
+      if (currCell.isCovered && !currCell.isMarked) {
+        const elCell = getElementByPos(i, j)
+        revealCell(elCell)
       }
     }
   }

@@ -5,6 +5,11 @@ var gInterval
 var gTimeout
 var gIsDark = true
 var gFirstClick = false
+var gDisableClicks = false
+var gManualMode = false
+var gIsManual = false
+var gMinesToPos
+const gLastMoves = []
 const MINE = '💣'
 const MARK = '🚩'
 const gLevel = {
@@ -41,6 +46,12 @@ function resetGame() {
   gGame.secsPassed = 0
   gGame.safeClicksLeft = 3
   gFirstClick = false
+  gManualMode = false
+  gIsManual = false
+  gMinesToPos = null
+  const elManualBtn = document.querySelector('.manually-create-btn')
+  elManualBtn.innerText = `Manually Create`
+  elManualBtn.classList.remove('off')
   renderTime()
   const elSafeButton = document.querySelector('.safe-click')
   elSafeButton.classList.remove('off')
@@ -50,7 +61,10 @@ function onFirstClick(rowIdx, colIdx) {
   gFirstClick = true
   gGame.isOn = true
   gBoard[rowIdx][colIdx].firstClicked = true
-  setMines()
+  if (!gIsManual) {
+    setMines()
+    document.querySelector('.manually-create-btn').classList.add('off')
+  }
   setMinesNegsCount()
   renderBoard()
   gInterval = setInterval(runTimer, 1000)
@@ -93,6 +107,10 @@ function setMines() {
   // gBoard[1][1].isMine = true
   // gBoard[2][3].isMine = true
 
+  // for (var i = 0, j = 0; i < 5; i++, j++){
+  //   // debugger
+  //   gBoard[i][j].isMine = true
+  // }
   ///////ACTUAL FUNCTION:
   for (var i = 0; i < gLevel.MINES; i++) {
     const cell = getRandCell()
@@ -108,7 +126,8 @@ function renderBoard() { //DOM
 
     for (var j = 0; j < gLevel.SIZE; j++) {
       const currCell = gBoard[i][j]
-      const cellContent = currCell.isMine ? MINE : currCell.minesAroundCount
+      var cellContent = currCell.isMine ? MINE : currCell.minesAroundCount
+      if (cellContent === 0) cellContent = ''
       const className = `cell cell-${i}-${j}`
 
       strHTML += `<td onclick="onCellClicked(this,${i},${j})" oncontextmenu="onCellMarked(this, event)" class="${className}"><span class="covered">${cellContent}</span></td>`
@@ -125,12 +144,20 @@ function updateLivesLeft() {
 }
 
 function onCellClicked(elCell, rowIdx, colIdx) {
-
+  if (gManualMode) {
+    handleManualMode(elCell, rowIdx, colIdx)
+    return
+  }
   const cell = getCurrCell(elCell)
+  if (gDisableClicks) return
   if (!gGame.isOn && !gFirstClick) elCell = onFirstClick(rowIdx, colIdx)
   if (!cell.isCovered || !gGame.isOn || cell.isMarked) return
   if (gGame.isHintMode) {
     useHint(elCell)
+    gDisableClicks = true
+    setTimeout(() => {
+      gDisableClicks = false
+    }, 1500);
     return
   }
 
@@ -140,10 +167,17 @@ function onCellClicked(elCell, rowIdx, colIdx) {
   if (cell.minesAroundCount === 0 && !cell.isMine) {
     expandReveal(gBoard, elCell, rowIdx, colIdx)
   }
+  // collapseReveal(gBoard, elCell, rowIdx, colIdx)
 
   checkGameOver(cell)
 
   if (cell.isMine) handleLivesLeft()
+  // saveMove(cell, rowIdx, colIdx)
+  // console.log('gLastMoves:', gLastMoves);
+  // console.log('gLastMoves[0]:', gLastMoves[0]);
+  if ((1 > (gLevel.SIZE ** 2 - gGame.revealedCount) - gLevel.MINES) && gFirstClick) {
+    greyOutElement(document.querySelector('.safe-click'))
+  }
 }
 
 function onCellMarked(elCell, event) {
@@ -159,13 +193,34 @@ function onCellMarked(elCell, event) {
 
   markCell(elCell)
   checkGameOver(cell)
-
+  // saveMove(cell)
 }
 
-function revealCell(elCell) {
+// function undoMove() {
+//   //Model
+//   const lastMove = gLastMoves[gLastMoves.length - 1]
+//   gGame.isOn = lastMove.mIsOn
+//   gGame.livesLeft = lastMove.mLives
+//   gGame.revealedCount = lastMove.mRevealed
+//   gGame.markedCount = lastMove.mMarked
 
+//   //DOM
+//   // debugger
+//   const elCell = getElementByPos(lastMove.mCellRowIdx, lastMove.mCellColIdx)
+//   if (!lastMove.mIsCoveredCell) {
+//     // if(lastMove.mMinesAround===0) collapseReveal(gBoard,elCell,lastMove.mCellRowIdx,lastMove.mCellColIdx)
+//     unRevealCell(elCell)
+//     gBoard[lastMove.mCellRowIdx][lastMove.mCellColIdx].isCovered = true
+//   }
+//   // else if (!lastMove)
+// }
+
+
+function revealCell(elCell) {
   const currCell = getCurrCell(elCell)
   if ((currCell.isMine && gGame.livesLeft > 0) || gGame.isHintMode) {
+    console.log('Hint');
+    elCell.classList.add('revealed')
     elCell.querySelector('.covered').classList.remove('covered')
     gTimeout = setTimeout(unRevealCell, 1500, elCell)
   } else {
@@ -174,6 +229,7 @@ function revealCell(elCell) {
     gGame.revealedCount++
 
     //Update Dom
+    elCell.classList.add('revealed')
     elCell.querySelector('.covered').classList.remove('covered')
   }
 
@@ -181,33 +237,15 @@ function revealCell(elCell) {
 
 function unRevealCell(elCell) {
   elCell.querySelector('span').classList.add('covered')
-}
-
-function hideCell(elCell) {
-  const currCell = getCurrCell(elCell)
-  console.log(gGame.isHintMode)
-
-  if (currCell.isMine || gGame.isHintMode) { //Cover Without changing the Model and revealedCount
-    elCell.querySelector('span').classList.add('covered')
-
-  } else {
-
-    currCell.isCovered = true
-    gGame.revealedCount--
-    elCell.querySelector('span').classList.add('covered')
-  }
+  elCell.classList.remove('revealed')
 }
 
 function markCell(elCell) {
-  if (gTimeout) {
-    clearTimeout(gTimeout)
-    unRevealCell(elCell)
-  }
+  unRevealCell(elCell)
   const cell = getCurrCell(elCell)
   cell.isMarked = true
   gGame.markedCount++
   addMark(elCell)
-  // if(cell.isMine&&!cell.isCovered) hideCell(elCell)
 }
 
 function addMark(elCell) {
@@ -332,10 +370,13 @@ function renderBestTime() {
 
 function onSafeClick() {
   if (!gGame.safeClicksLeft) return
+  // if ((1 > (gLevel.SIZE ** 2 - gGame.revealedCount) - gLevel.MINES) && gFirstClick){
+  //   greyOutElement(document.querySelector('.safe-click'))
+  // }
   //Model
-  gGame.safeClicksLeft--
   const safeCell = getRandCell()
   const elSafeCell = getElementByPos(safeCell.i, safeCell.j)
+  gGame.safeClicksLeft--
 
   //DOM
   elSafeCell.classList.add('safe-cell')
@@ -343,7 +384,8 @@ function onSafeClick() {
     elSafeCell.classList.remove('safe-cell')
     if (gGame.safeClicksLeft === 0) {
       const elSafeButton = document.querySelector('.safe-click')
-      elSafeButton.classList.add('off')
+      // elSafeButton.classList.add('off')
+      greyOutElement(elSafeButton)
     }
   }, 1500);
 }
@@ -352,5 +394,39 @@ function onLightMode(elBtn) {
   gIsDark = !gIsDark
   const elBody = document.querySelector('body')
   elBody.classList.toggle('light-mode')
-  elBtn.innerText = gIsDark?'Light Mode': 'Dark Mode'
+  elBtn.innerText = gIsDark ? 'Light Mode' : 'Dark Mode'
+}
+
+function onManuallyCreate() {
+  //Model
+  if(gGame.isOn) return
+  buildBoard()
+  gManualMode = true
+  gMinesToPos = gLevel.MINES
+
+
+  //DOM
+  const elManualBtn = document.querySelector('.manually-create-btn')
+  elManualBtn.innerText = `Mines left: ${gMinesToPos}`
+}
+
+function handleManualMode(elCell, rowIdx, colIdx) {
+  //Model
+  //Disable SETMINES later
+  gBoard[rowIdx][colIdx].isMine = true
+  gMinesToPos--
+
+  //DOM
+  //Change the buttons text to the number of mines to be positioned
+  //Show mines until all were positioned
+
+  elCell.classList.add('mineset')
+  const elManualBtn = document.querySelector('.manually-create-btn')
+  elManualBtn.innerText = `Mines left: ${gMinesToPos}`
+  if (gMinesToPos === 0) {
+    elManualBtn.classList.add('off')
+    gManualMode = false
+    gIsManual = true
+    renderBoard()
+  }
 }

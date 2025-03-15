@@ -67,6 +67,8 @@ function resetGame() {
   for (var i = 0; i < elOffBtns.length; i++) {
     elOffBtns[i].classList.remove('off')
   }
+    const elExtBtn = document.querySelector('.exterminator')
+    elExtBtn.classList.add('off')
 }
 
 function onFirstClick(rowIdx, colIdx) {
@@ -81,8 +83,10 @@ function onFirstClick(rowIdx, colIdx) {
   renderBoard()
   gInterval = setInterval(runTimer, 1000)
   const elCell = document.querySelector(`.cell-${rowIdx}-${colIdx}`)
-  // elCell.querySelector('span').classList.remove('covered')
-  // console.log('FROM onFirstClick:',elCell,elCell.innerHTML)
+  if (gLevel.MINES > 3) {
+    var elExtBtn = document.querySelector('.exterminator')
+    elExtBtn.classList.remove('off')
+  }
   return elCell
 }
 
@@ -476,7 +480,6 @@ function onExterminator() {
   // debugger
   for (var i = 0; i < 3; i++) {
     const mine = getRandMine()
-    console.log('mine:', mine);
     gBoard[mine.i][mine.j].isMine = false
   }
   setMinesNegsCount()
